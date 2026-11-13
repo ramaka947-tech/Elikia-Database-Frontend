@@ -1,10 +1,12 @@
 // Responsable : Abdoulaye
 // Appel API : GET /companies/:id (récupérer l'id avec useParams)
+// Le titre de la page est déjà affiché dans la barre du haut (Topbar).
+import Card from '../components/ui/Card';
+
 export default function Fiche() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-elikia">Fiche entreprise</h1>
-      <p className="text-gray-500 mt-2">À développer par Abdoulaye.</p>
-    </div>
+    <Card>
+      <p className="text-slate-500">Fiche entreprise : à développer par Abdoulaye.</p>
+    </Card>
   );
 }

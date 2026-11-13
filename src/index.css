@@ -1,14 +1,25 @@
 @import "tailwindcss";
 
-/* Couleurs Elikia : utilisables avec bg-elikia, text-elikia, border-gold, etc. */
+/*
+  Identité Elikia (fichier partagé, géré par Rama)
+  Couleurs : bg-elikia, text-elikia, bg-navy, text-gold, border-line...
+  Polices  : font-serif pour les grands titres, font-sans pour le reste
+*/
 @theme {
-  --color-elikia: #0f6b3e;
-  --color-elikia-dark: #0a4d2c;
-  --color-elikia-light: #e7f3ec;
-  --color-gold: #c9a227;
-  --color-ink: #1f2933;
+  --color-elikia: #10a074;
+  --color-elikia-dark: #0b7d5a;
+  --color-elikia-light: #e6f6ef;
+  --color-navy: #0b1424;
+  --color-navy-soft: #13203a;
+  --color-gold: #d4a63a;
+  --color-gold-light: #fbf3df;
+  --color-ink: #1b2332;
+  --color-line: #e5e7eb;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "DM Serif Display", Georgia, serif;
 }
 
 body {
-  @apply bg-gray-50 text-ink;
+  @apply bg-slate-50 text-ink font-sans antialiased;
 }

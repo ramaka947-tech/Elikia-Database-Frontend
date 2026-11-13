@@ -1,0 +1,70 @@
+// Responsable : Rama
+import { useState } from 'react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { ArrowRight, User, Mail, Lock } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import AuthLayout from '../components/layout/AuthLayout';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+
+export default function Register() {
+  const { user, register } = useAuth();
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  if (user) return <Navigate to="/tableau-de-bord" replace />;
+
+  const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError('');
+    if (form.password.length < 8) return setError('Le mot de passe doit contenir au moins 8 caractères');
+    if (form.password !== form.confirm) return setError('Les deux mots de passe ne correspondent pas');
+
+    setSubmitting(true);
+    try {
+      await register(form.name, form.email, form.password);
+      navigate('/tableau-de-bord');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Inscription impossible');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <AuthLayout>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <h2 className="font-serif text-3xl sm:text-4xl text-forest">Créer un compte</h2>
+          <p className="text-sm text-slate-500 mt-2">Rejoignez Elikia Database pour rechercher et suivre les entreprises.</p>
+        </div>
+
+        <Input label="Nom complet" icon={User} placeholder="Awa Ndiaye" autoComplete="name" value={form.name} onChange={update('name')} required />
+        <Input label="Email" icon={Mail} type="email" placeholder="nom@entreprise.sn" autoComplete="email" value={form.email} onChange={update('email')} required />
+        <Input label="Mot de passe" icon={Lock} type="password" placeholder="8 caractères minimum" autoComplete="new-password" value={form.password} onChange={update('password')} required />
+        <Input label="Confirmer le mot de passe" icon={Lock} type="password" placeholder="Retapez le mot de passe" autoComplete="new-password" value={form.confirm} onChange={update('confirm')} required />
+
+        {error && <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+
+        <Button type="submit" className="w-full h-12" disabled={submitting}>
+          {submitting ? 'Création...' : <>Créer mon compte <ArrowRight size={18} /></>}
+        </Button>
+
+        <p className="text-xs text-center text-slate-500 leading-relaxed">
+          En créant un compte, vous acceptez les{' '}
+          <Link to="/conditions" className="text-elikia hover:underline">Conditions d'utilisation</Link> et la{' '}
+          <Link to="/confidentialite" className="text-elikia hover:underline">Politique de confidentialité</Link>.
+        </p>
+
+        <p className="text-sm text-center text-slate-500 pt-2">
+          Déjà inscrit ?{' '}
+          <Link to="/login" className="font-semibold text-elikia hover:underline">Se connecter</Link>
+        </p>
+      </form>
+    </AuthLayout>
+  );
+}

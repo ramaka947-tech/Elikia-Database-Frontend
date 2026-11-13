@@ -1,10 +1,12 @@
 // Responsable : Assane
 // Appels API : GET /companies?..., GET /companies/export?...
+// Le titre de la page est déjà affiché dans la barre du haut (Topbar).
+import Card from '../components/ui/Card';
+
 export default function Repertoire() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-elikia">Répertoire des entreprises</h1>
-      <p className="text-gray-500 mt-2">À développer par Assane.</p>
-    </div>
+    <Card>
+      <p className="text-slate-500">Répertoire : à développer par Assane.</p>
+    </Card>
   );
 }

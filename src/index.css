@@ -1,14 +1,43 @@
 @import "tailwindcss";
 
-/* Couleurs Elikia : utilisables avec bg-elikia, text-elikia, border-gold, etc. */
+/*
+  Identité Elikia (fichier partagé, géré par Rama)
+  Couleurs d'origine Elikia : bleu nuit + vert émeraude + touche dorée (comme Elikia Diaspora).
+
+  bg-elikia / text-elikia      vert émeraude (boutons, liens, éléments actifs)
+  bg-elikia-dark               vert émeraude foncé (survol)
+  text-elikia-bright           vert menthe (texte d'accent sur fond foncé, ex : « Connecter. »)
+  bg-elikia-light              vert très clair (badges "vérifié", fonds légers)
+  bg-navy / text-navy          bleu nuit (sidebar, bandeaux, titres)
+  bg-navy-soft                 bleu nuit plus clair (cartes sur fond foncé)
+  bg-forest / bg-forest-soft   mêmes couleurs que navy (gardés pour ne pas casser le code existant)
+  text-gold / bg-gold-light    doré (petites touches d'accent, badges "estimé")
+  text-ink                     gris très foncé (texte principal)
+  border-line                  gris clair (bordures)
+*/
 @theme {
-  --color-elikia: #0f6b3e;
-  --color-elikia-dark: #0a4d2c;
-  --color-elikia-light: #e7f3ec;
-  --color-gold: #c9a227;
-  --color-ink: #1f2933;
+  --color-elikia: #10a074;
+  --color-elikia-dark: #0b8560;
+  --color-elikia-bright: #3ddc97;
+  --color-elikia-light: #e7f6ef;
+  --color-navy: #131b2b;
+  --color-navy-soft: #1d2840;
+  --color-forest: #131b2b;
+  --color-forest-soft: #1d2840;
+  --color-gold: #d9a531;
+  --color-gold-light: #fbf3df;
+  --color-ink: #161d2b;
+  --color-line: #e7e5e0;
+  --color-cream: #faf8f4;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, serif;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  @apply bg-gray-50 text-ink;
+  @apply bg-cream text-ink font-sans antialiased;
 }

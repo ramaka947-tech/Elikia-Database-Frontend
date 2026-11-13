@@ -1,43 +1,44 @@
-// Barre du haut (fichier partagé, géré par Rama)
-import { useLocation } from 'react-router-dom';
-import { Menu, LogOut } from 'lucide-react';
+// Barre du haut (fichier partagé, géré par Rama), en bleu nuit
+// Téléphone : logo à gauche ; le titre de la page est affiché dans la page (Layout).
+// Tablette et ordinateur (sidebar visible) : titre + phrase d'introduction à gauche.
+// À droite : badge du rôle, icône Messages (avec les non lus), puis l'avatar (menu : Déconnexion).
+import { Link, useLocation } from 'react-router-dom';
+import { Crown, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import Badge from '../ui/Badge';
+import { getPageTitle } from '../../utils/pageTitles';
+import Logo from './Logo';
+import UserMenu from './UserMenu';
+import MessagesButton from './MessagesButton';
 
-// Titre affiché selon la page
-function getTitle(pathname) {
-  if (pathname === '/') return 'Tableau de bord';
-  if (pathname === '/entreprises') return 'Répertoire des entreprises';
-  if (pathname === '/entreprises/nouveau') return 'Ajouter une entreprise';
-  if (pathname.endsWith('/modifier')) return 'Modifier une entreprise';
-  if (pathname.startsWith('/entreprises/')) return 'Fiche entreprise';
-  if (pathname === '/admin/import') return 'Import CSV';
-  return '';
-}
-
-export default function Topbar({ onMenu, onLogout }) {
-  const { user, isAdmin } = useAuth();
+export default function Topbar({ onLogout }) {
+  const { isAdmin } = useAuth();
   const { pathname } = useLocation();
+  const { title, text } = getPageTitle(pathname, isAdmin);
+  const RoleIcon = isAdmin ? Crown : User;
 
   return (
-    <header className="sticky top-0 z-20 h-20 bg-white/90 backdrop-blur border-b border-line">
+    <header className="sticky top-0 z-30 h-16 sm:h-20 lg:h-24 bg-navy border-b border-white/10 sm:border-l sm:border-l-white/10">
       <div className="h-full px-4 sm:px-8 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <button className="lg:hidden text-navy" onClick={onMenu} aria-label="Ouvrir le menu">
-            <Menu size={24} />
-          </button>
-          <h1 className="font-serif text-2xl sm:text-3xl text-navy truncate">{getTitle(pathname)}</h1>
+        <Link to="/tableau-de-bord" className="sm:hidden shrink-0" aria-label="Accueil de l'espace">
+          <Logo variant="dark" />
+        </Link>
+        <div className="hidden sm:block min-w-0">
+          <h1 className="font-serif text-2xl lg:text-3xl text-white truncate">{title}</h1>
+          {text && <p className="text-sm text-white/60 truncate mt-0.5">{text}</p>}
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <Badge color={isAdmin ? 'gold' : 'gray'}>{isAdmin ? 'Administrateur' : 'Utilisateur'}</Badge>
-          <span className="hidden sm:block text-sm text-slate-600">{user?.name}</span>
-          <button
-            onClick={onLogout}
-            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full border border-line text-sm text-slate-700 hover:bg-slate-50"
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <span
+            className={`inline-flex items-center gap-1.5 h-8 sm:h-9 px-2.5 sm:px-4 rounded-full text-xs sm:text-sm font-medium ${
+              isAdmin ? 'bg-gold/15 text-gold border border-gold/30' : 'bg-white/10 text-white/80 border border-white/15'
+            }`}
+            title={isAdmin ? 'Administrateur' : 'Utilisateur'}
           >
-            <LogOut size={16} /> Déconnexion
-          </button>
+            <RoleIcon size={16} />
+            <span className="hidden min-[400px]:inline">{isAdmin ? 'Administrateur' : 'Utilisateur'}</span>
+          </span>
+          <MessagesButton />
+          <UserMenu onLogout={onLogout} />
         </div>
       </div>
     </header>

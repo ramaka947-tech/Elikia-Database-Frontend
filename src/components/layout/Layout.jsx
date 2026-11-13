@@ -1,14 +1,18 @@
 // Layout commun : sidebar + barre du haut + contenu (fichier partagé, géré par Rama)
-import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+// Tablette et ordinateur : sidebar à gauche (étroite sur tablette), titre de la page dans la barre du haut.
+// Téléphone : barre de navigation en bas, titre de la page en haut du contenu.
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getPageTitle } from '../../utils/pageTitles';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import BottomNav from './BottomNav';
 
 export default function Layout() {
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+  const { title, text, mobile = true } = getPageTitle(pathname, isAdmin);
 
   function handleLogout() {
     logout();
@@ -17,14 +21,22 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex">
-      <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} onLogout={handleLogout} />
+      <Sidebar onLogout={handleLogout} />
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <Topbar onMenu={() => setMenuOpen(true)} onLogout={handleLogout} />
-        <main className="flex-1 px-4 sm:px-8 py-6">
+        <Topbar onLogout={handleLogout} />
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-6 pb-32 sm:pb-8">
+          {title && mobile && (
+            <div className="sm:hidden mb-5">
+              <h1 className="font-serif text-3xl text-navy">{title}</h1>
+              {text && <p className="mt-1 text-slate-500">{text}</p>}
+            </div>
+          )}
           <Outlet />
         </main>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

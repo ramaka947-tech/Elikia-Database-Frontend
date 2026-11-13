@@ -36,6 +36,7 @@ Toutes les pages sont déjà déclarées dans `App.jsx`. Chacun n'a qu'à rempli
 | Navigation | React Router |
 | Style | Tailwind CSS v4 |
 | Icônes | lucide-react |
+| PWA | vite-plugin-pwa (application installable sur téléphone) |
 | Appels API | Axios (déjà configuré dans `api/client.js`) |
 | Hébergement | Vercel |
 
@@ -51,7 +52,13 @@ src/
   context/AuthContext.jsx         Rama (partagé)
   components/layout/              Rama (partagé : header, menu, protection des pages)
   components/ui/                  Rama (partagé : Button, Input, Badge)
+  pages/Home.jsx                  Rama (page d'accueil)
   pages/Login.jsx                 Rama
+  pages/Register.jsx              Rama
+  pages/Utilisateurs.jsx          Rama
+  pages/MesListes.jsx             Rama (P1)
+  pages/Profil.jsx                Rama (P1)
+  components/listes/              Rama (P1 : bouton Ajouter à une liste)
   pages/Repertoire.jsx            Assane
   components/repertoire/          Assane
   pages/Fiche.jsx                 Abdoulaye
@@ -67,13 +74,19 @@ src/
 
 | URL | Page | Accès |
 |---|---|---|
+| `/` | Page d'accueil (présentation du site) | public |
 | `/login` | Connexion | public |
-| `/` | Tableau de bord | connecté |
+| `/inscription` | Inscription (crée un compte USER) | public |
+| `/admin/login` | Connexion administrateur (refuse les comptes USER) | public |
+| `/tableau-de-bord` | Tableau de bord | connecté |
 | `/entreprises` | Répertoire | connecté |
 | `/entreprises/:id` | Fiche entreprise | connecté |
 | `/entreprises/nouveau` | Création | ADMIN |
 | `/entreprises/:id/modifier` | Modification | ADMIN |
 | `/admin/import` | Import CSV | ADMIN |
+| `/admin/utilisateurs` | Liste des comptes inscrits | ADMIN |
+| `/listes` | Mes listes (P1) | connecté |
+| `/profil` | Mon profil (P1). Pour un admin : + Gestion des accès (créer / supprimer des admins) | connecté |
 
 ---
 
@@ -101,24 +114,32 @@ Tailwind est **déjà installé et configuré**. On utilise **Tailwind v4** : il
 
 | Classe | Couleur | Usage |
 |---|---|---|
-| `bg-elikia`, `text-elikia`, `border-elikia` | vert émeraude | boutons principaux, éléments actifs |
+| `bg-elikia`, `text-elikia`, `border-elikia` | vert Elikia | boutons principaux, liens, éléments actifs |
 | `bg-elikia-dark` | vert foncé | survol des boutons |
 | `bg-elikia-light` | vert très clair | badges "vérifié", fonds légers |
-| `bg-navy`, `text-navy` | bleu nuit | sidebar, titres, fonds sombres |
-| `bg-navy-soft` | bleu nuit plus clair | cartes sur fond sombre |
+| `bg-forest`, `text-forest` | vert très foncé | sidebar, bandeaux, titres |
+| `bg-forest-soft` | vert foncé plus clair | cartes sur fond foncé |
+| `text-elikia-bright` | vert lumineux | texte d'accent sur fond foncé |
 | `text-gold`, `bg-gold-light` | doré | petites touches d'accent, badges "estimé" |
 | `text-ink` | gris très foncé | texte principal |
 | `border-line` | gris clair | bordures des cartes et champs |
 
-Polices : `font-serif` (DM Serif Display) pour les grands titres, le reste est en Inter par défaut.
+Palette du cahier des charges : vert Elikia, blanc, gris foncé, accent doré léger. Logo dans `public/logo.png` (complet) et `public/logo-mark.png` (symbole), à utiliser via le composant `Logo`.
+
+Polices : `font-serif` (Source Serif 4) pour les grands titres, le reste est en Inter par défaut.
 
 Le layout (sidebar à gauche, barre du haut avec le titre de la page) est déjà en place : **ne pas remettre de grand titre en haut de vos pages**, il est affiché automatiquement dans la barre du haut.
 
-Composants partagés disponibles dans `components/ui/` : `Button` (variantes `primary`, `secondary`, `dark`, `danger`), `Input`, `Badge` (couleurs `green`, `gold`, `red`, `gray`, `navy`), `Card` (carte blanche avec titre optionnel).
+Composants partagés disponibles dans `components/ui/` : `Button` (variantes `primary`, `secondary`, `dark`, `danger`, `ghost`), `Input` (accepte une icône : `icon={Mail}`, et ajoute l'œil automatiquement pour les mots de passe), `Badge` (couleurs `green`, `gold`, `red`, `gray`, `forest`), `Card` (carte blanche avec titre optionnel).
+
+Composants prêts à l'emploi :
+- `ConfidenceBadge` (`components/ui/ConfidenceBadge.jsx`) : `<ConfidenceBadge score={company.confidence_score} />` affiche « Vérifié » (vert, 80 et plus), « Estimé » (doré, 50 à 79) ou « À vérifier » (rouge). **À utiliser dans le Répertoire et la Fiche** pour que les couleurs soient les mêmes partout.
+- `AddToListButton` (`components/listes/AddToListButton.jsx`) : `<AddToListButton companyId={company.id} />` ajoute ou retire l'entreprise des listes de l'utilisateur. **Abdoulaye** : à mettre en haut de la Fiche. **Assane** : version compacte sur chaque résultat avec `compact`.
 
 Icônes : `lucide-react` est installé. Ex : `import { Search } from 'lucide-react';` puis `<Search size={18} />`.
 
 - Avant de créer un bouton, un champ ou un badge, **utiliser les composants de `components/ui/`** (`Button`, `Input`, `Badge`).
+- **Tout doit être responsive.** Tester chaque page en mode mobile (F12, puis l'icône téléphone dans le navigateur).
 - Penser mobile : utiliser les préfixes `md:` et `lg:` (ex : `grid grid-cols-1 md:grid-cols-3`).
 - Les informations estimées doivent se distinguer des informations vérifiées (ex : `<Badge color="gold">Estimé</Badge>` et `<Badge color="green">Vérifié</Badge>`).
 

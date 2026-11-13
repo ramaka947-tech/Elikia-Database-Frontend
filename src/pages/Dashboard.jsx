@@ -1,10 +1,12 @@
 // Responsable : Sophiatou
 // Appel API : GET /stats
+// Le titre de la page est déjà affiché dans la barre du haut (Topbar).
+import Card from '../components/ui/Card';
+
 export default function Dashboard() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-elikia">Tableau de bord</h1>
-      <p className="text-gray-500 mt-2">À développer par Sophiatou.</p>
-    </div>
+    <Card>
+      <p className="text-slate-500">Tableau de bord : à développer par Sophiatou.</p>
+    </Card>
   );
 }

@@ -6,30 +6,27 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import SectionHeader from './SectionHeader';
+import { checkPassword, LIMITS } from '../../utils/validation';
 
 const empty = { current: '', next: '', confirm: '' };
-
-// Au moins 8 caractères, une majuscule, une minuscule et un chiffre
-function checkPassword(p) {
-  if (p.length < 8) return 'Le nouveau mot de passe doit contenir au moins 8 caractères.';
-  if (!/[A-Z]/.test(p) || !/[a-z]/.test(p) || !/[0-9]/.test(p)) {
-    return 'Le nouveau mot de passe doit contenir une majuscule, une minuscule et un chiffre.';
-  }
-  return null;
-}
 
 export default function SecurityTab({ onToast }) {
   const [pwd, setPwd] = useState(empty);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const set = (field) => (e) => setPwd({ ...pwd, [field]: e.target.value });
+  const set = (field) => (e) => { setPwd({ ...pwd, [field]: e.target.value }); setErrors({ ...errors, [field]: null }); };
 
   async function submit(e) {
     e.preventDefault();
     setError('');
-    const problem = checkPassword(pwd.next);
-    if (problem) return setError(problem);
-    if (pwd.next !== pwd.confirm) return setError('Les deux nouveaux mots de passe ne correspondent pas.');
+    const next = {
+      current: pwd.current ? null : 'Saisissez votre mot de passe actuel.',
+      next: checkPassword(pwd.next) || (pwd.next === pwd.current ? "Le nouveau mot de passe doit être différent de l'actuel." : null),
+      confirm: !pwd.confirm ? 'Confirmez le nouveau mot de passe.' : pwd.next !== pwd.confirm ? 'Les deux nouveaux mots de passe ne correspondent pas.' : null,
+    };
+    setErrors(next);
+    if (Object.values(next).some(Boolean)) return;
 
     setSaving(true);
     try {
@@ -47,10 +44,10 @@ export default function SecurityTab({ onToast }) {
     <Card>
       <SectionHeader icon={Lock} title="Sécurité du compte" text="Protégez votre compte avec un mot de passe robuste." />
 
-      <form onSubmit={submit} className="space-y-4 max-w-xl">
-        <Input label="Mot de passe actuel *" type="password" autoComplete="current-password" value={pwd.current} onChange={set('current')} required />
-        <Input label="Nouveau mot de passe *" type="password" autoComplete="new-password" value={pwd.next} onChange={set('next')} required />
-        <Input label="Confirmer le nouveau mot de passe *" type="password" autoComplete="new-password" value={pwd.confirm} onChange={set('confirm')} required />
+      <form onSubmit={submit} className="space-y-4 max-w-xl" noValidate>
+        <Input label="Mot de passe actuel *" type="password" autoComplete="current-password" maxLength={LIMITS.passwordMax} value={pwd.current} onChange={set('current')} error={errors.current} />
+        <Input label="Nouveau mot de passe *" type="password" autoComplete="new-password" maxLength={LIMITS.passwordMax} value={pwd.next} onChange={set('next')} error={errors.next} />
+        <Input label="Confirmer le nouveau mot de passe *" type="password" autoComplete="new-password" maxLength={LIMITS.passwordMax} value={pwd.confirm} onChange={set('confirm')} error={errors.confirm} />
 
         <p className="flex items-start gap-3 text-sm rounded-xl px-4 py-3 bg-elikia-light text-elikia-dark">
           <Info size={18} className="shrink-0 mt-0.5" />

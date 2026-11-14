@@ -7,6 +7,16 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 
 const MAX = 200;
+const NAME_MAX = 80;
+
+// Nom de liste : 2 à 80 caractères, avec au moins une lettre (les chiffres sont acceptés : « Prospects 2026 »)
+function checkListName(value) {
+  const v = value.trim();
+  if (!v) return 'Le nom de la liste est obligatoire.';
+  if (v.length < 2) return 'Le nom de la liste doit contenir au moins 2 caractères.';
+  if (!/\p{L}/u.test(v)) return 'Le nom de la liste doit contenir au moins une lettre.';
+  return null;
+}
 
 export default function ListFormModal({ open, onClose, list = null, onSaved }) {
   const editing = Boolean(list);
@@ -25,7 +35,8 @@ export default function ListFormModal({ open, onClose, list = null, onSaved }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!name.trim()) return setError('Le nom de la liste est obligatoire');
+    const problem = checkListName(name);
+    if (problem) return setError(problem);
     setSaving(true);
     setError('');
     try {
@@ -48,17 +59,18 @@ export default function ListFormModal({ open, onClose, list = null, onSaved }) {
       title={editing ? 'Modifier la liste' : 'Créer une nouvelle liste'}
       description={editing ? 'Les entreprises de la liste ne seront pas modifiées.' : 'Organisez vos entreprises selon vos besoins (prospects, partenaires, secteur, etc.).'}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <label className="block">
           <span className="block text-sm font-medium text-ink mb-1.5">Nom de la liste <span className="text-red-500">*</span></span>
           <input
             autoFocus
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={80}
+            onChange={(e) => { setName(e.target.value.replace(/\s{2,}/g, ' ').slice(0, NAME_MAX)); setError(''); }}
+            maxLength={NAME_MAX}
             placeholder="Ex. Partenaires potentiels"
             className="w-full h-12 px-4 rounded-xl border border-line text-sm focus:outline-none focus:ring-2 focus:ring-elikia/30 focus:border-elikia"
           />
+          <span className="block text-right text-xs text-slate-400 mt-1">{name.length} / {NAME_MAX}</span>
         </label>
         <label className="block">
           <span className="block text-sm font-medium text-ink mb-1.5">Description (facultative)</span>

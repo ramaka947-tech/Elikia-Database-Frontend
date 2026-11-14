@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../components/layout/AuthLayout';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import { checkEmail, filterEmail, LIMITS } from '../utils/validation';
 
 export default function Login() {
   const { user, login } = useAuth();
@@ -13,6 +14,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [showForgot, setShowForgot] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -21,6 +23,9 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    const next = { email: checkEmail(email), password: password ? null : 'Le mot de passe est obligatoire.' };
+    setErrors(next);
+    if (next.email || next.password) return;
     setSubmitting(true);
     try {
       await login(email, password);
@@ -34,14 +39,14 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <div>
           <h2 className="font-serif text-3xl sm:text-4xl text-forest">Se connecter</h2>
           <p className="text-sm text-slate-500 mt-2">Accédez à votre espace Elikia Database.</p>
         </div>
 
-        <Input label="Email" icon={Mail} type="email" placeholder="Votre email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <Input label="Mot de passe" icon={Lock} type="password" placeholder="Votre mot de passe" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <Input label="Email" icon={Mail} type="email" placeholder="Votre email" autoComplete="email" maxLength={LIMITS.email} value={email} onChange={(e) => { setEmail(filterEmail(e.target.value)); setErrors({ ...errors, email: null }); }} error={errors.email} />
+        <Input label="Mot de passe" icon={Lock} type="password" placeholder="Votre mot de passe" autoComplete="current-password" maxLength={LIMITS.passwordMax} value={password} onChange={(e) => { setPassword(e.target.value); setErrors({ ...errors, password: null }); }} error={errors.password} />
 
         <div className="text-right -mt-2">
           <button type="button" onClick={() => setShowForgot(!showForgot)} className="text-sm font-medium text-elikia hover:underline">

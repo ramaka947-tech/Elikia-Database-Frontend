@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import Logo from '../components/layout/Logo';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import { checkEmail, filterEmail, LIMITS } from '../utils/validation';
 
 export default function AdminLogin() {
   const { user, isAdmin, login } = useAuth();
@@ -13,6 +14,7 @@ export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   if (user && isAdmin) return <Navigate to="/tableau-de-bord" replace />;
@@ -20,6 +22,9 @@ export default function AdminLogin() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    const next = { email: checkEmail(email), password: password ? null : 'Le mot de passe est obligatoire.' };
+    setErrors(next);
+    if (next.email || next.password) return;
     setSubmitting(true);
     try {
       await login(email, password, true);
@@ -43,9 +48,9 @@ export default function AdminLogin() {
           <p className="mt-2 text-slate-500">Accédez à votre espace administrateur</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          <Input label="Email" icon={Mail} type="email" placeholder="admin@elikia.sn" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <Input label="Mot de passe" icon={Lock} type="password" placeholder="Votre mot de passe" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+          <Input label="Email" icon={Mail} type="email" placeholder="admin@elikia.sn" autoComplete="email" maxLength={LIMITS.email} value={email} onChange={(e) => { setEmail(filterEmail(e.target.value)); setErrors({ ...errors, email: null }); }} error={errors.email} />
+          <Input label="Mot de passe" icon={Lock} type="password" placeholder="Votre mot de passe" autoComplete="current-password" maxLength={LIMITS.passwordMax} value={password} onChange={(e) => { setPassword(e.target.value); setErrors({ ...errors, password: null }); }} error={errors.password} />
 
           {error && <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
 

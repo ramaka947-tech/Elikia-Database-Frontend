@@ -6,11 +6,13 @@ import { useAuth } from '../../context/AuthContext';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import { checkName, filterName, LIMITS } from '../../utils/validation';
 
 export default function ProfileTab({ onToast, onLogout }) {
   const { user, isAdmin, setUser } = useAuth();
   const [name, setName] = useState(user?.name || '');
   const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState(null);
 
   const initials = (user?.name || '?').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
   const since = user?.created_at
@@ -20,6 +22,9 @@ export default function ProfileTab({ onToast, onLogout }) {
 
   async function save(e) {
     e.preventDefault();
+    const problem = checkName(name);
+    setNameError(problem);
+    if (problem) return;
     setSaving(true);
     try {
       const { data } = await api.patch('/auth/me', { name });
@@ -55,10 +60,10 @@ export default function ProfileTab({ onToast, onLogout }) {
 
       <hr className="my-6 border-line" />
 
-      <form onSubmit={save} className="space-y-4">
+      <form onSubmit={save} className="space-y-4" noValidate>
         <h3 className="font-semibold text-navy text-lg">Informations personnelles</h3>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Input label="Nom complet *" icon={User} value={name} onChange={(e) => setName(e.target.value)} required />
+          <Input label="Nom complet *" icon={User} maxLength={LIMITS.name} value={name} onChange={(e) => { setName(filterName(e.target.value)); setNameError(null); }} error={nameError} hint="Lettres uniquement (espaces, tirets et apostrophes acceptés)." />
           <div>
             <Input label="Email" icon={Mail} value={user?.email || ''} disabled className="bg-slate-50 text-slate-500" />
             <p className="text-xs text-slate-400 mt-1.5">L'adresse email ne peut pas être modifiée.</p>
@@ -66,7 +71,7 @@ export default function ProfileTab({ onToast, onLogout }) {
         </div>
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
-          <Button type="button" variant="secondary" onClick={() => setName(user?.name || '')} disabled={!changed}>
+          <Button type="button" variant="secondary" onClick={() => { setName(user?.name || ''); setNameError(null); }} disabled={!changed}>
             Annuler
           </Button>
           <Button type="submit" disabled={!changed || saving}>

@@ -7,6 +7,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Badge from '../ui/Badge';
+import { checkName, checkEmail, checkPassword, filterName, filterEmail, LIMITS } from '../../utils/validation';
 
 const empty = { name: '', email: '', password: '' };
 
@@ -15,6 +16,7 @@ export default function AccessManagement() {
   const [admins, setAdmins] = useState([]);
   const [form, setForm] = useState(empty);
   const [msg, setMsg] = useState({});
+  const [errors, setErrors] = useState({});
   const [listError, setListError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -24,17 +26,23 @@ export default function AccessManagement() {
     loadAdmins().catch(() => setListError('Impossible de charger les administrateurs'));
   }, []);
 
-  const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+  const filters = { name: filterName, email: filterEmail };
+  const update = (field) => (e) => {
+    setForm({ ...form, [field]: filters[field] ? filters[field](e.target.value) : e.target.value });
+    setErrors({ ...errors, [field]: null });
+  };
 
   async function createAdmin(e) {
     e.preventDefault();
     setMsg({});
-    if (form.password.length < 8) return setMsg({ type: 'error', text: 'Le mot de passe doit contenir au moins 8 caractères' });
+    const next = { name: checkName(form.name), email: checkEmail(form.email), password: checkPassword(form.password) };
+    setErrors(next);
+    if (Object.values(next).some(Boolean)) return;
     setSaving(true);
     try {
       await api.post('/users/admins', form);
       setForm(empty);
-      setMsg({ type: 'success', text: 'Compte administrateur créé' });
+      setMsg({ type: 'success', text: 'Compte administrateur créé. Un email de confirmation lui a été envoyé.' });
       loadAdmins();
     } catch (err) {
       setMsg({ type: 'error', text: err.response?.data?.message || 'Création impossible' });
@@ -68,10 +76,10 @@ export default function AccessManagement() {
 
       <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-6 items-start">
         <Card title={<span className="flex items-center gap-2"><UserPlus size={18} className="text-elikia" /> Nouveau compte</span>}>
-          <form onSubmit={createAdmin} className="space-y-4">
-            <Input label="Nom complet" icon={User} placeholder="Ex : Awa Ndiaye" value={form.name} onChange={update('name')} required />
-            <Input label="Adresse email" icon={Mail} type="email" placeholder="Ex : awa@elikia.sn" autoComplete="off" value={form.email} onChange={update('email')} required />
-            <Input label="Mot de passe" icon={Lock} type="password" placeholder="8 caractères minimum" autoComplete="new-password" value={form.password} onChange={update('password')} required />
+          <form onSubmit={createAdmin} className="space-y-4" noValidate>
+            <Input label="Nom complet *" icon={User} placeholder="Ex : Awa Ndiaye" maxLength={LIMITS.name} value={form.name} onChange={update('name')} error={errors.name} />
+            <Input label="Adresse email *" icon={Mail} type="email" placeholder="Ex : awa@elikia.sn" autoComplete="off" maxLength={LIMITS.email} value={form.email} onChange={update('email')} error={errors.email} />
+            <Input label="Mot de passe *" icon={Lock} type="password" placeholder="8 caractères minimum" autoComplete="new-password" maxLength={LIMITS.passwordMax} value={form.password} onChange={update('password')} error={errors.password} hint="8 caractères minimum, avec une majuscule, une minuscule et un chiffre." />
             {msg.text && (
               <p className={`flex items-center gap-2 text-sm rounded-xl px-4 py-3 ${msg.type === 'success' ? 'bg-elikia-light text-elikia-dark' : 'bg-red-50 text-red-600'}`}>
                 {msg.type === 'success' && <CheckCircle2 size={16} />} {msg.text}

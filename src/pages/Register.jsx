@@ -6,23 +6,41 @@ import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../components/layout/AuthLayout';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import { checkName, checkEmail, checkPassword, filterName, filterEmail, LIMITS } from '../utils/validation';
 
 export default function Register() {
   const { user, register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   if (user) return <Navigate to="/tableau-de-bord" replace />;
 
-  const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+  // Les caractères interdits ne peuvent pas être tapés ; l'erreur du champ disparaît pendant la saisie
+  const filters = { name: filterName, email: filterEmail };
+  const update = (field) => (e) => {
+    const value = filters[field] ? filters[field](e.target.value) : e.target.value;
+    setForm({ ...form, [field]: value });
+    setErrors({ ...errors, [field]: null });
+  };
+
+  function validate() {
+    const next = {
+      name: checkName(form.name),
+      email: checkEmail(form.email),
+      password: checkPassword(form.password),
+      confirm: !form.confirm ? 'Confirmez le mot de passe.' : form.password !== form.confirm ? 'Les deux mots de passe ne correspondent pas.' : null,
+    };
+    setErrors(next);
+    return !Object.values(next).some(Boolean);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (form.password.length < 8) return setError('Le mot de passe doit contenir au moins 8 caractères');
-    if (form.password !== form.confirm) return setError('Les deux mots de passe ne correspondent pas');
+    if (!validate()) return;
 
     setSubmitting(true);
     try {
@@ -37,16 +55,16 @@ export default function Register() {
 
   return (
     <AuthLayout>
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <div>
           <h2 className="font-serif text-3xl sm:text-4xl text-forest">Créer un compte</h2>
           <p className="text-sm text-slate-500 mt-2">Rejoignez Elikia Database pour rechercher et suivre les entreprises.</p>
         </div>
 
-        <Input label="Nom complet" icon={User} placeholder="Awa Ndiaye" autoComplete="name" value={form.name} onChange={update('name')} required />
-        <Input label="Email" icon={Mail} type="email" placeholder="nom@entreprise.sn" autoComplete="email" value={form.email} onChange={update('email')} required />
-        <Input label="Mot de passe" icon={Lock} type="password" placeholder="8 caractères minimum" autoComplete="new-password" value={form.password} onChange={update('password')} required />
-        <Input label="Confirmer le mot de passe" icon={Lock} type="password" placeholder="Retapez le mot de passe" autoComplete="new-password" value={form.confirm} onChange={update('confirm')} required />
+        <Input label="Nom complet *" icon={User} placeholder="Awa Ndiaye" autoComplete="name" maxLength={LIMITS.name} value={form.name} onChange={update('name')} error={errors.name} hint="Lettres uniquement (espaces, tirets et apostrophes acceptés)." />
+        <Input label="Email *" icon={Mail} type="email" placeholder="nom@entreprise.sn" autoComplete="email" maxLength={LIMITS.email} value={form.email} onChange={update('email')} error={errors.email} />
+        <Input label="Mot de passe *" icon={Lock} type="password" placeholder="8 caractères minimum" autoComplete="new-password" maxLength={LIMITS.passwordMax} value={form.password} onChange={update('password')} error={errors.password} hint="Au moins 8 caractères, avec une majuscule, une minuscule et un chiffre." />
+        <Input label="Confirmer le mot de passe *" icon={Lock} type="password" placeholder="Retapez le mot de passe" autoComplete="new-password" maxLength={LIMITS.passwordMax} value={form.confirm} onChange={update('confirm')} error={errors.confirm} />
 
         {error && <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
 

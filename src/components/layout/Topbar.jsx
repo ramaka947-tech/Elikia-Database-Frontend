@@ -18,8 +18,8 @@ export default function Topbar({ onLogout }) {
 
   return (
     <header className="sticky top-0 z-30 h-16 sm:h-20 lg:h-24 bg-navy border-b border-white/10 sm:border-l sm:border-l-white/10">
-      <div className="h-full px-4 sm:px-8 flex items-center justify-between gap-4">
-        <Link to="/tableau-de-bord" className="sm:hidden shrink-0" aria-label="Accueil de l'espace">
+      <div className="h-full px-4 sm:px-8 flex items-center justify-between gap-2 sm:gap-4">
+        <Link to="/tableau-de-bord" className="sm:hidden min-w-0" aria-label="Accueil de l'espace">
           <Logo variant="dark" />
         </Link>
         <div className="hidden sm:block min-w-0">

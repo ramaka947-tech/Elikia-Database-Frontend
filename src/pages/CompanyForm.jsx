@@ -71,7 +71,7 @@ const SECTIONS = [
             { cols: 3, fields: [
                 { name: 'sector_id', label: 'Secteur', required: true, options: 'sectors', emptyLabel: 'Sélectionner un secteur' },
                 { name: 'sub_sector', label: 'Sous-secteur', required: true, placeholder: 'Fintech & Paiements' },
-                { name: 'business_type', label: 'Modèle', required: true, options: ['B2B', 'B2C', 'B2G', 'Mixte'] },
+                { name: 'business_type', label: 'Modèle', required: true, options: ['B2B', 'B2C', 'B2G'] },
             ]},
             { cols: 1, fields: [
                 { name: 'description', label: 'Description courte', required: true, type: 'textarea', rows: 3, maxLength: 500,

@@ -20,8 +20,8 @@ export default function Layout() {
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} onLogout={handleLogout} />
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <Topbar onMenu={() => setMenuOpen(true)} onLogout={handleLogout} />
-        <main className="flex-1 px-4 sm:px-8 py-6">
+        <Topbar onMenu={() => setMenuOpen(true)} />
+        <main className="flex-1 px-4 sm:px-8 py-8">
           <Outlet />
         </main>
       </div>

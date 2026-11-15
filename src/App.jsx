@@ -9,6 +9,7 @@ import Repertoire from './pages/Repertoire.jsx';
 import Fiche from './pages/Fiche.jsx';
 import CompanyForm from './pages/CompanyForm.jsx';
 import Import from './pages/Import.jsx';
+import Placeholder from './pages/Placeholder.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 export default function App() {
@@ -19,6 +20,9 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/vitrine" element={<Placeholder text="Page vitrine : à développer." />} />
+          <Route path="/listes" element={<Placeholder text="Mes listes : à développer." />} />
+          <Route path="/profil" element={<Placeholder text="Profil & accès : à développer." />} />
           <Route path="/entreprises" element={<Repertoire />} />
           <Route path="/entreprises/:id" element={<Fiche />} />
 

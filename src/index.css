@@ -6,17 +6,17 @@
   Polices  : font-serif pour les grands titres, font-sans pour le reste
 */
 @theme {
-  --color-elikia: #10a074;
-  --color-elikia-dark: #0b7d5a;
-  --color-elikia-light: #e6f6ef;
-  --color-navy: #0b1424;
-  --color-navy-soft: #13203a;
+  --color-elikia: #3d8d6f;
+  --color-elikia-dark: #2f7459;
+  --color-elikia-light: #e8f3ee;
+  --color-navy: #16222d;
+  --color-navy-soft: #1f2f3d;
   --color-gold: #d4a63a;
   --color-gold-light: #fbf3df;
   --color-ink: #1b2332;
-  --color-line: #e5e7eb;
+  --color-line: #e6e9ec;
 
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-serif: "DM Serif Display", Georgia, serif;
 }
 

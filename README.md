@@ -213,3 +213,9 @@ Un utilisateur peut se connecter, rechercher une entreprise, appliquer des filtr
 ## Bugs connus / améliorations
 
 À compléter avant la livraison.
+
+---
+
+## Mode simulé (sans backend)
+
+Tant que l’API n’est pas prête, `VITE_USE_MOCK=true` (dans `.env`) active `src/api/mock.js` : 250 entreprises fictives dont 87 à Dakar, connexion `admin@elikia.sn / Admin123!`. Passer à `false` pour appeler le vrai backend : aucun autre fichier à modifier.

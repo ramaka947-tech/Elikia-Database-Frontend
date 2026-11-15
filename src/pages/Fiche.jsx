@@ -1,10 +1,12 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-    Bookmark, CircleCheck, Database, Download, Globe, Linkedin, Lock,
+    ArrowLeft, CircleCheck, Database, Download, Globe, Linkedin, Lock,
     Mail, MapPin, Pencil, Phone, Sparkles, Trash2, UserRoundCheck,
 } from 'lucide-react';
 import api from '../api/client';
+import { useAuth } from '../context/AuthContext';
+import AddToListButton from '../components/listes/AddToListButton';
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -180,6 +182,7 @@ const SIZE_FIELDS = [
 export default function Fiche() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { isAdmin } = useAuth();
     const [company, setCompany] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -216,7 +219,9 @@ export default function Fiche() {
 
     const status = STATUS[company.status] || STATUS.actif;
     const score = Number(company.confidence_score) || 0;
-    const edit = () => navigate(`/companies/${company.id}/edit`);
+    const edit = () => navigate(`/entreprises/${company.id}/modifier`);
+    // Retour : page précédente (le Répertoire garde sa recherche), sinon le Répertoire
+    const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/entreprises'));
 
     // Dirigeants liés, sinon le dirigeant principal saisi dans le formulaire (si la colonne existe)
     const people = company.people?.length
@@ -229,7 +234,15 @@ export default function Fiche() {
             : [];
 
     return (
-        <div className="mx-auto max-w-6xl space-y-5 px-4 py-6">
+        <div className="mx-auto max-w-6xl space-y-5 px-0 sm:px-4 py-2 sm:py-6">
+            <button
+                type="button"
+                onClick={goBack}
+                className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-line bg-white text-sm font-medium text-ink hover:bg-slate-50"
+            >
+                <ArrowLeft size={16} /> Retour au répertoire
+            </button>
+
             {/* En-tête */}
             <section className="rounded-xl border border-gray-200 bg-white p-6">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
@@ -254,13 +267,17 @@ export default function Fiche() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        {/* Pas d'API "listes" connue : bouton prêt à être branché */}
-                        <ActionButton icon={Bookmark} tone="amber">Dans mes listes</ActionButton>
+                        {/* Ajout à une ou plusieurs listes (module Mes listes) */}
+                        <AddToListButton companyId={company.id} />
                         <ActionButton icon={Download} tone="slate" onClick={() => downloadCsv(company)}>Export CSV</ActionButton>
-                        <ActionButton icon={Pencil} tone="green" onClick={edit}>Modifier</ActionButton>
-                        <ActionButton icon={Trash2} tone="red" onClick={handleArchive}>
-                            {company.status === 'inactif' ? 'Désarchiver' : 'Archiver'}
-                        </ActionButton>
+                        {isAdmin && (
+                            <Fragment>
+                                <ActionButton icon={Pencil} tone="green" onClick={edit}>Modifier</ActionButton>
+                                <ActionButton icon={Trash2} tone="red" onClick={handleArchive}>
+                                    {company.status === 'inactif' ? 'Désarchiver' : 'Archiver'}
+                                </ActionButton>
+                            </Fragment>
+                        )}
                     </div>
                 </div>
 

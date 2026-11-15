@@ -4,7 +4,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { isCancel } from 'axios';
-import { AlertCircle, CheckCircle2, RefreshCw, PlusCircle, Upload, FolderPlus } from 'lucide-react';
+import { AlertCircle, CheckCircle2, RefreshCw, PlusCircle, Upload, FolderPlus, Trash2 } from 'lucide-react';
+import Modal from '../components/ui/Modal';
 import AddToListModal from '../components/listes/AddToListModal';
 import Toast from '../components/ui/Toast';
 import { addResultToast } from '../components/listes/addResultMessage';
@@ -45,15 +46,36 @@ export default function Repertoire() {
     return ids.every((id) => prev.has(id)) ? new Set() : new Set(ids);
   });
 
-  async function handleDelete(c) {
-    if (!window.confirm(`Supprimer « ${c.name} » ? Cette action est définitive.`)) return;
-    try {
-      await deleteCompany(c.id);
-      setNotice({ type: 'success', message: `« ${c.name} » a été supprimée.` });
-      setReloadKey((k) => k + 1);
-    } catch (err) {
-      setNotice({ type: 'error', message: `Suppression impossible : ${getErrorMessage(err)}` });
+  // Suppression (une entreprise ou toute la sélection) : confirmation dans une modale
+  const [toDelete, setToDelete] = useState(null); // tableau d'entreprises à supprimer, ou null
+  const [deleting, setDeleting] = useState(false);
+  const closeDelete = useCallback(() => { if (!deleting) setToDelete(null); }, [deleting]);
+
+  const handleDelete = (c) => setToDelete([c]);
+  const askDeleteSelected = () => setToDelete(result.items.filter((c) => selected.has(c.id)));
+
+  async function confirmDelete() {
+    const list = toDelete;
+    setDeleting(true);
+    const results = await Promise.allSettled(list.map((c) => deleteCompany(c.id)));
+    setDeleting(false);
+    setToDelete(null);
+
+    const failed = results.filter((r) => r.status === 'rejected');
+    const done = list.length - failed.length;
+    if (failed.length === 0) {
+      setNotice({
+        type: 'success',
+        message: list.length === 1 ? `« ${list[0].name} » a été supprimée.` : `${done} entreprises ont été supprimées.`,
+      });
+    } else {
+      setNotice({
+        type: 'error',
+        message: `${done} supprimée(s), ${failed.length} impossible(s) : ${getErrorMessage(failed[0].reason)}`,
+      });
     }
+    setSelected(new Set());
+    setReloadKey((k) => k + 1);
   }
 
   // Nombre de filtres actifs (la recherche texte n'est pas comptée : elle a sa propre barre)
@@ -171,6 +193,15 @@ export default function Repertoire() {
                 <FolderPlus size={16} /> Ajouter {selected.size} à une liste
               </button>
             )}
+            {isAdmin && selected.size > 0 && (
+              <button
+                type="button"
+                onClick={askDeleteSelected}
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-red-50 text-red-700 text-sm font-medium hover:bg-red-600 hover:text-white"
+              >
+                <Trash2 size={16} /> Supprimer {selected.size}
+              </button>
+            )}
             {result.total > 0 && <p>Page {Math.min(page, totalPages)} sur {totalPages}</p>}
           </div>
         </div>
@@ -207,6 +238,30 @@ export default function Repertoire() {
         companyIds={[...selected]}
         onDone={(res) => { setToast(addResultToast(res)); setSelected(new Set()); }}
       />
+      <Modal
+        open={!!toDelete}
+        onClose={closeDelete}
+        tone="red"
+        icon={Trash2}
+        size="sm"
+        title={toDelete?.length > 1 ? `Supprimer ${toDelete.length} entreprises ?` : "Supprimer l'entreprise ?"}
+        description="Cette action est définitive : les fiches seront retirées du répertoire et des listes."
+      >
+        {toDelete && (
+          <ul className="max-h-48 overflow-y-auto rounded-2xl border border-line divide-y divide-line text-sm">
+            {toDelete.map((c) => (
+              <li key={c.id} className="px-4 py-2.5 font-medium text-ink truncate">{c.name}</li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <Button type="button" variant="secondary" onClick={closeDelete} disabled={deleting}>Annuler</Button>
+          <Button type="button" variant="danger" onClick={confirmDelete} disabled={deleting}>
+            <Trash2 size={16} /> {deleting ? 'Suppression...' : 'Supprimer'}
+          </Button>
+        </div>
+      </Modal>
+
       <Toast toast={toast} onClose={closeToast} />
     </div>
   );

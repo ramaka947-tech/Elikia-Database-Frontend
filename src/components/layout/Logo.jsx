@@ -12,15 +12,15 @@ export default function Logo({ variant = 'full', className = '' }) {
   }
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-3 min-w-0 ${className}`}>
       <div className="w-11 h-11 shrink-0 rounded-xl bg-white flex items-center justify-center p-1.5">
         <img src="/logo-mark.png" alt="" className="w-full h-auto" />
       </div>
-      <div className="leading-tight">
-        <p className="text-lg font-semibold text-white">
+      <div className="leading-tight min-w-0">
+        <p className="text-lg font-semibold text-white truncate">
           Elikia <span className="text-gold">Database</span>
         </p>
-        <p className="text-xs text-white/60">Les entreprises du Sénégal</p>
+        <p className="text-xs text-white/60 truncate">Les entreprises du Sénégal</p>
       </div>
     </div>
   );

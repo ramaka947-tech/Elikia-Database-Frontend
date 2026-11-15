@@ -160,11 +160,11 @@ function Thread({ id, isAdmin, onSent }) {
   return (
     <div className="flex flex-col min-h-0 h-full">
       {/* En-tête */}
-      <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-line">
+      <div className="shrink-0 flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-line bg-white">
         <Link to="/messages" className="lg:hidden -ml-1 p-2 rounded-full text-slate-500 hover:bg-slate-100" aria-label="Retour aux discussions">
           <ArrowLeft size={20} />
         </Link>
-        <div className="min-w-0">
+        <div className="flex-1 min-w-0">
           <p className="font-semibold text-navy truncate">{conv.subject}</p>
           <p className="text-xs text-slate-500 truncate">
             {isAdmin ? `${conv.user_name} · ${conv.user_email}` : "Avec l'équipe Elikia Database"}
@@ -173,7 +173,7 @@ function Thread({ id, isAdmin, onSent }) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-3 bg-cream">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 space-y-3 bg-cream">
         {conv.messages.map((m) => {
           const mine = m.sender_id === user?.id;
           const day = longDate(m.created_at);
@@ -187,7 +187,7 @@ function Thread({ id, isAdmin, onSent }) {
               <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-2.5 ${mine ? 'bg-elikia text-white rounded-br-md' : 'bg-white border border-line text-ink rounded-bl-md'}`}>
                   {!mine && <p className="text-[11px] font-semibold text-elikia-dark mb-0.5">{who}</p>}
-                  <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>
+                  <p className="text-sm whitespace-pre-wrap [overflow-wrap:anywhere]">{m.body}</p>
                   <p className={`text-[10px] mt-1 text-right ${mine ? 'text-white/70' : 'text-slate-400'}`}>{time(m.created_at)}</p>
                 </div>
               </div>
@@ -198,7 +198,7 @@ function Thread({ id, isAdmin, onSent }) {
       </div>
 
       {/* Réponse */}
-      <form onSubmit={send} className="border-t border-line p-3 sm:p-4 bg-white">
+      <form onSubmit={send} className="shrink-0 border-t border-line px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 bg-white">
         {sendError && <p className="mb-2 text-xs text-red-600">{sendError}</p>}
         <div className="flex items-end gap-2">
           <textarea
@@ -209,7 +209,7 @@ function Thread({ id, isAdmin, onSent }) {
             onKeyDown={onKeyDown}
             placeholder="Écrire un message..."
             aria-label="Votre message"
-            className="flex-1 max-h-32 min-h-11 rounded-2xl border border-line bg-white px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-elikia/30 focus:border-elikia"
+            className="flex-1 min-w-0 max-h-32 min-h-11 rounded-2xl border border-line bg-white px-4 py-2.5 text-base sm:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-elikia/30 focus:border-elikia"
           />
           <button
             type="submit"
@@ -259,14 +259,11 @@ export default function Messages() {
     <>
       {loadError && <p className="mb-4 text-red-600 bg-red-50 rounded-2xl px-5 py-4">{loadError}</p>}
 
-      {/* Hauteur = écran moins la barre du haut, le titre (téléphone) et la barre du bas (téléphone) */}
-      <div
-        className={`bg-white rounded-3xl border border-line overflow-hidden grid lg:grid-cols-[22rem_minmax(0,1fr)] min-h-[24rem] sm:h-[calc(100dvh-9.5rem)] lg:h-[calc(100dvh-10.5rem)] ${
-          id ? 'h-[calc(100dvh-13.5rem)]' : 'h-[calc(100dvh-19rem)]'
-        }`}
-      >
-        {/* Liste : toujours visible sur ordinateur ; sur téléphone seulement sans discussion ouverte */}
-        <aside className={`${id ? 'hidden lg:flex' : 'flex'} flex-col min-h-0 lg:border-r border-line`}>
+      {/* Téléphone : la liste prend sa hauteur naturelle.
+          Tablette / ordinateur : bloc à la hauteur de l'écran (moins la barre du haut). */}
+      <div className="bg-white rounded-3xl border border-line overflow-hidden grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[22rem_minmax(0,1fr)] sm:min-h-[24rem] sm:h-[calc(100dvh-9.5rem)] lg:h-[calc(100dvh-10.5rem)]">
+        {/* Liste : toujours visible sur ordinateur ; sur téléphone / tablette seulement sans discussion ouverte */}
+        <aside className={`${id ? 'hidden lg:flex' : 'flex'} min-w-0 flex-col min-h-0 lg:border-r border-line`}>
           <ConversationList
             conversations={conversations}
             activeId={id}
@@ -276,7 +273,10 @@ export default function Messages() {
           />
         </aside>
 
-        <section className={`${id ? 'flex' : 'hidden lg:flex'} flex-col min-h-0`}>
+        {/* Téléphone : la discussion ouverte passe en plein écran, la zone d'écriture reste en bas */}
+        <section
+          className={`${id ? 'flex fixed inset-0 z-50 h-[100dvh] bg-white sm:static sm:z-auto sm:h-auto' : 'hidden lg:flex'} min-w-0 flex-col min-h-0`}
+        >
           {id ? (
             <Thread key={id} id={id} isAdmin={isAdmin} onSent={loadList} />
           ) : (

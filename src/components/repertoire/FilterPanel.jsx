@@ -1,9 +1,10 @@
 // Panneau de filtres : 8 listes + 3 cases "contact renseigné"
 // Sous-secteur dépend du secteur, ville dépend de la région.
+// Les secteurs viennent de la base (useSectors), pour correspondre aux fiches.
 import { useMemo } from 'react';
 import Select from './Select';
+import useSectors from './useSectors';
 import {
-  SECTORS,
   REGIONS,
   LEGAL_FORMS,
   COMPANY_SIZES,
@@ -26,9 +27,10 @@ function Checkbox({ label, checked, onChange }) {
 }
 
 export default function FilterPanel({ filters, onChange }) {
+  const sectors = useSectors();
   const subSectors = useMemo(
-    () => SECTORS.find((s) => s.name === filters.sector)?.subSectors ?? [],
-    [filters.sector]
+    () => sectors.find((s) => s.name === filters.sector)?.subSectors ?? [],
+    [sectors, filters.sector]
   );
   const cities = useMemo(() => REGIONS[filters.region] ?? [], [filters.region]);
 
@@ -39,7 +41,7 @@ export default function FilterPanel({ filters, onChange }) {
           label="Secteur"
           value={filters.sector}
           onChange={(v) => onChange('sector', v)}
-          options={SECTORS.map((s) => s.name)}
+          options={sectors.map((s) => s.name)}
           placeholder="Tous les secteurs"
         />
         <Select
@@ -47,8 +49,8 @@ export default function FilterPanel({ filters, onChange }) {
           value={filters.sub_sector}
           onChange={(v) => onChange('sub_sector', v)}
           options={subSectors}
-          placeholder="Tous les sous-secteurs"
-          disabled={!filters.sector}
+          placeholder={filters.sector && subSectors.length === 0 ? 'Aucun sous-secteur' : 'Tous les sous-secteurs'}
+          disabled={!filters.sector || subSectors.length === 0}
         />
         <Select
           label="Région"

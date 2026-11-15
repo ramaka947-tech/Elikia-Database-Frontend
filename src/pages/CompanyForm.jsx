@@ -27,7 +27,7 @@ const SENEGAL_REGIONS_CITIES = {
 const CURRENT_YEAR = new Date().getFullYear();
 
 // Adresse de la page Fiche : à adapter si ta route est différente
-const FICHE_PATH = (companyId) => `/companies/${companyId}`;
+const FICHE_PATH = (companyId) => `/entreprises/${companyId}`;
 
 const DEFAULTS = {
     name: '', legal_name: '', legal_form: 'SARL', creation_year: '', ninea: '', rccm: '',
@@ -426,7 +426,7 @@ export default function CompanyForm() {
             const flash = isEditMode ? 'Fiche mise à jour avec succès' : 'Fiche créée avec succès';
             // Direction la fiche qui vient d'être créée / modifiée (le répertoire n'est pas encore prêt)
             const companyId = data?.id ?? id;
-            const target = companyId ? FICHE_PATH(companyId) : '/repertoire';
+            const target = companyId ? FICHE_PATH(companyId) : '/entreprises';
             setTimeout(() => navigate(target, { state: { flash } }), 800);
         } catch (err) {
             console.error('Erreur sauvegarde:', err.response?.data || err);

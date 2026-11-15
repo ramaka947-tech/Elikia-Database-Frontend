@@ -1,7 +1,11 @@
-// Liste des entreprises : tableau avec sélection, favoris, modifier, supprimer.
+// Liste des entreprises : sélection, ajout à une liste, modifier, supprimer.
 // Cliquer sur une ligne ouvre la fiche (/entreprises/:id).
+// Grand écran : tableau. Téléphone et tablette : une carte par entreprise.
+// Le bouton « liste » ouvre la fenêtre Mes listes (AddToListButton, partagé avec la fiche).
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bookmark, Pencil, Trash2, SearchX } from 'lucide-react';
+import { Pencil, Trash2, SearchX, MapPin } from 'lucide-react';
+import AddToListButton from '../listes/AddToListButton';
 import Button from '../ui/Button';
 import StatusBadge from './StatusBadge';
 import ConfidenceBar from './ConfidenceBar';
@@ -10,6 +14,20 @@ import { SIZE_LABELS } from './constants';
 const formatDate = (v) => (v ? String(v).slice(0, 10) : '—');
 const location = (c) => [c.city, c.region].filter(Boolean).join(', ') || '—';
 const stop = (e) => e.stopPropagation();
+
+// Vrai à partir de 1280 px (xl) : on n'affiche qu'une des deux présentations
+function useWideScreen() {
+  const query = '(min-width: 1280px)';
+  const [wide, setWide] = useState(() => window.matchMedia?.(query).matches ?? true);
+  useEffect(() => {
+    const mq = window.matchMedia?.(query);
+    if (!mq) return;
+    const onChange = (e) => setWide(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return wide;
+}
 
 function SkeletonRows() {
   return (
@@ -38,18 +56,60 @@ function EmptyState({ onReset, canReset }) {
 
 export default function CompanyTable({
   companies, loading, onReset, canReset,
-  selected, onToggle, onToggleAll, saved, onSave, onDelete, isAdmin,
+  selected, onToggle, onToggleAll, onDelete, isAdmin,
 }) {
   const navigate = useNavigate();
+  const wide = useWideScreen();
   if (loading && companies.length === 0) return <SkeletonRows />;
   if (companies.length === 0) return <EmptyState onReset={onReset} canReset={canReset} />;
 
   const allChecked = companies.every((c) => selected.has(c.id));
   const th = 'py-4 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500';
 
+  const actions = (c) => (
+    <div className="flex items-center justify-end gap-1">
+      <AddToListButton companyId={c.id} compact />
+      {isAdmin && (
+        <>
+          <Link to={`/entreprises/${c.id}/modifier`} aria-label={`Modifier ${c.name}`} className="p-2.5 rounded-full text-slate-400 hover:bg-slate-100 hover:text-navy">
+            <Pencil size={16} />
+          </Link>
+          <button type="button" onClick={() => onDelete(c)} aria-label={`Supprimer ${c.name}`} className="p-2.5 rounded-full text-slate-400 hover:bg-red-50 hover:text-red-600">
+            <Trash2 size={16} />
+          </button>
+        </>
+      )}
+    </div>
+  );
+
   return (
-    <div className={`overflow-x-auto transition-opacity ${loading ? 'opacity-50 pointer-events-none' : ''}`} aria-busy={loading}>
-      <table className="w-full min-w-[1040px] text-left text-sm">
+    <div className={`transition-opacity ${loading ? 'opacity-50 pointer-events-none' : ''}`} aria-busy={loading}>
+      {/* Téléphone et tablette : cartes */}
+      {!wide && (
+      <ul className="divide-y divide-line">
+        {companies.map((c) => (
+          <li key={c.id} className="p-4 flex gap-3">
+            <input type="checkbox" checked={selected.has(c.id)} onChange={() => onToggle(c.id)} aria-label={`Sélectionner ${c.name}`} className="mt-1 w-4 h-4 accent-elikia shrink-0" />
+            <div className="flex-1 min-w-0">
+              <Link to={`/entreprises/${c.id}`} className="font-semibold text-navy hover:text-elikia">{c.name}</Link>
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+                {c.legalForm && <span>{c.legalForm}</span>}
+                <StatusBadge status={c.status} />
+              </div>
+              <p className="mt-2 text-sm text-ink truncate">{c.sector || 'Secteur non renseigné'}{c.subSector && <span className="text-slate-500"> · {c.subSector}</span>}</p>
+              <p className="mt-0.5 text-xs text-slate-500 flex items-center gap-1"><MapPin size={12} /> {location(c)}</p>
+              <div className="mt-2 max-w-48"><ConfidenceBar score={c.confidenceScore} /></div>
+            </div>
+            <div className="shrink-0 self-start">{actions(c)}</div>
+          </li>
+        ))}
+      </ul>
+      )}
+
+      {/* Grand écran : tableau */}
+      {wide && (
+      <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-line">
             <th className={`${th} pl-5 w-10`}>
@@ -98,30 +158,14 @@ export default function CompanyTable({
               <td className="py-3.5 px-3"><ConfidenceBar score={c.confidenceScore} /></td>
               <td className="py-3.5 px-3 whitespace-nowrap font-mono text-xs text-slate-500">{formatDate(c.updatedAt)}</td>
               <td className="py-3.5 pl-3 pr-5" onClick={stop}>
-                <div className="flex items-center justify-end gap-1">
-                  <button
-                    type="button" onClick={() => onSave(c.id)} aria-pressed={saved.has(c.id)}
-                    aria-label={saved.has(c.id) ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                    className={`p-2 rounded-lg ${saved.has(c.id) ? 'bg-gold-light text-gold' : 'text-slate-400 hover:bg-slate-100'}`}
-                  >
-                    <Bookmark size={16} fill={saved.has(c.id) ? 'currentColor' : 'none'} />
-                  </button>
-                  {isAdmin && (
-                    <>
-                      <Link to={`/entreprises/${c.id}/modifier`} aria-label={`Modifier ${c.name}`} className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-navy">
-                        <Pencil size={16} />
-                      </Link>
-                      <button type="button" onClick={() => onDelete(c)} aria-label={`Supprimer ${c.name}`} className="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600">
-                        <Trash2 size={16} />
-                      </button>
-                    </>
-                  )}
-                </div>
+                {actions(c)}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
+      )}
     </div>
   );
 }

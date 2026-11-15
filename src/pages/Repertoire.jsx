@@ -1,9 +1,13 @@
 // Responsable : Assane
 // Appels API : GET /companies?..., GET /companies/export?...  (voir components/repertoire/api.js)
 // Le titre de la page est déjà affiché dans la barre du haut (Topbar).
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { isCancel } from 'axios';
-import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AlertCircle, CheckCircle2, RefreshCw, PlusCircle, Upload, FolderPlus } from 'lucide-react';
+import AddToListModal from '../components/listes/AddToListModal';
+import Toast from '../components/ui/Toast';
+import { addResultToast } from '../components/listes/addResultMessage';
 
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -27,16 +31,10 @@ export default function Repertoire() {
   const [notice, setNotice] = useState(null); // { type: 'success' | 'error', message }
   const { isAdmin } = useAuth();
   const [selected, setSelected] = useState(() => new Set());
-  const [saved, setSaved] = useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('elikia:saved') || '[]')); } catch { return new Set(); }
-  });
-
-  const toggleSaved = (id) => setSaved((prev) => {
-    const next = new Set(prev);
-    next.has(id) ? next.delete(id) : next.add(id);
-    localStorage.setItem('elikia:saved', JSON.stringify([...next]));
-    return next;
-  });
+  // Ajout des entreprises cochées à une liste (Mes listes)
+  const [listModal, setListModal] = useState(false);
+  const [toast, setToast] = useState(null);
+  const closeToast = useCallback(() => setToast(null), []);
   const toggleOne = (id) => setSelected((prev) => {
     const next = new Set(prev);
     next.has(id) ? next.delete(id) : next.add(id);
@@ -115,6 +113,18 @@ export default function Repertoire() {
 
   return (
     <div className="space-y-5">
+      {/* Actions administrateur (déplacées depuis la sidebar) */}
+      {isAdmin && (
+        <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
+          <Link to="/admin/import" className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full border border-line bg-white text-sm font-medium text-ink hover:bg-slate-50">
+            <Upload size={18} /> Import CSV
+          </Link>
+          <Link to="/entreprises/nouveau" className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-elikia text-white text-sm font-medium hover:bg-elikia-dark">
+            <PlusCircle size={18} /> Ajouter une entreprise
+          </Link>
+        </div>
+      )}
+
       <Card className="p-5">
         <SearchBar
           value={filters.q}
@@ -151,7 +161,18 @@ export default function Repertoire() {
             <span className="font-semibold text-navy">{result.total}</span>{' '}
             entreprise{result.total > 1 ? 's' : ''} trouvée{result.total > 1 ? 's' : ''}
           </p>
-          {result.total > 0 && <p>Page {Math.min(page, totalPages)} sur {totalPages}</p>}
+          <div className="flex items-center gap-3">
+            {selected.size > 0 && (
+              <button
+                type="button"
+                onClick={() => setListModal(true)}
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-elikia-light text-elikia-dark text-sm font-medium hover:bg-elikia hover:text-white"
+              >
+                <FolderPlus size={16} /> Ajouter {selected.size} à une liste
+              </button>
+            )}
+            {result.total > 0 && <p>Page {Math.min(page, totalPages)} sur {totalPages}</p>}
+          </div>
         </div>
       )}
 
@@ -171,7 +192,7 @@ export default function Repertoire() {
             <CompanyTable
               companies={result.items} loading={loading} onReset={reset} canReset={hasCriteria}
               selected={selected} onToggle={toggleOne} onToggleAll={toggleAll}
-              saved={saved} onSave={toggleSaved} onDelete={handleDelete} isAdmin={isAdmin}
+              onDelete={handleDelete} isAdmin={isAdmin}
             />
             {result.total > 0 && (
               <Pagination page={page} totalPages={totalPages} total={result.total} onChange={setPage} />
@@ -179,6 +200,14 @@ export default function Repertoire() {
           </>
         )}
       </section>
+
+      <AddToListModal
+        open={listModal}
+        onClose={() => setListModal(false)}
+        companyIds={[...selected]}
+        onDone={(res) => { setToast(addResultToast(res)); setSelected(new Set()); }}
+      />
+      <Toast toast={toast} onClose={closeToast} />
     </div>
   );
 }

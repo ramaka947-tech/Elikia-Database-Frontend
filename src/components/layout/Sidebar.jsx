@@ -3,7 +3,7 @@
 // Tablette (640 à 1023 px) : étroite, icônes seules (le nom s'affiche au survol).
 // Ordinateur (≥ 1024 px)   : complète, icônes + noms.
 import { Link, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Bookmark, UserCircle, PlusCircle, Upload, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, Building2, Bookmark, UserCircle, Users, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from './Logo';
 import InstallAppButton from './InstallAppButton';
@@ -15,9 +15,8 @@ const mainLinks = [
   { to: '/profil', label: 'Mon compte', icon: UserCircle },
 ];
 
+// « Ajouter une entreprise » et « Import CSV » sont des boutons de la page Répertoire
 const adminLinks = [
-  { to: '/entreprises/nouveau', label: 'Ajouter une entreprise', icon: PlusCircle },
-  { to: '/admin/import', label: 'Import CSV', icon: Upload },
   { to: '/admin/utilisateurs', label: 'Utilisateurs', icon: Users },
 ];
 
@@ -25,7 +24,6 @@ function Item({ to, label, icon: Icon }) {
   return (
     <NavLink
       to={to}
-      end={to === '/entreprises'}
       title={label}
       aria-label={label}
       className={({ isActive }) =>

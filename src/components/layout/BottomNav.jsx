@@ -2,7 +2,7 @@
 // Visible uniquement sur téléphone (cachée à partir de 640 px, où la sidebar prend le relais).
 // L'élément actif « sort » de la barre dans une bulle, qui glisse d'un onglet à l'autre.
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Building2, Bookmark, UserCircle, Upload } from 'lucide-react';
+import { LayoutDashboard, Building2, Bookmark, UserCircle, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const userItems = [
@@ -12,8 +12,9 @@ const userItems = [
   { to: '/profil', label: 'Mon compte', icon: UserCircle },
 ];
 
-// L'admin n'a pas de listes : on lui met l'Import CSV à la place
-const adminItems = [userItems[0], userItems[1], { to: '/admin/import', label: 'Import CSV', icon: Upload }, userItems[3]];
+// L'admin n'a pas de listes : on lui met Utilisateurs à la place
+// (Ajouter une entreprise et Import CSV sont des boutons de la page Répertoire)
+const adminItems = [userItems[0], userItems[1], { to: '/admin/utilisateurs', label: 'Utilisateurs', icon: Users }, userItems[3]];
 
 export default function BottomNav() {
   const { isAdmin } = useAuth();
